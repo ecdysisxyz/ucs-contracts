@@ -1,0 +1,97 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.22;
+
+import {console2} from "forge-std/console2.sol";
+
+/**
+ * @dev https://eips.ethereum.org/EIPS/eip-1167[EIP 1167] is a standard for
+ * deploying minimal proxy contracts, also known as "clones".
+ *
+ * > To simply and cheaply clone contract functionality in an immutable way, this standard specifies
+ * > a minimal bytecode implementation that delegates all calls to a known, fixed address.
+ *
+ * The library includes functions to deploy a proxy using either `create` (traditional deployment) or `create2`
+ * (salted deterministic deployment). It also includes functions to predict the addresses of clones deployed using the
+ * deterministic method.
+ */
+library ERC7546Clones {
+    /**
+     * @dev A clone instance deployment failed.
+     */
+    error ERC7546FailedCreateClone();
+
+    /**
+     * @dev Deploys and returns the address of a clone that mimics the behaviour of `implementation`.
+     *
+     * This function uses the create opcode, which should never revert.
+     */
+    function clone(address _dictionary, bytes memory _initData) internal returns (address instance) {
+        bytes memory _deploymentBytecode = hex"6101d538036101d55f395f518080803b610072577f4e4f4e5f434f4e54524143540000000000000000000000000000000000000000600c600061006f577f08c379a0000000000000000000000000000000000000000000000000000000005f52602060045260245260445260805ffd5b50505b7f9717cc4ad21cea1e4bb2dbe5bf433000ecfa3ebe067079ba42add6d1ca82a2e2557fa657f2ad315cf3bb35cf1964158da75c3f334481df05a4a1644b2376b17a59b25f5fa2604051156101015760605160e01c63dc9cc64560201b175f5260205f60086018845afa156100e457505f515b3d5ffd5f5f6040516080845af43d5f5f3e156100fd573d5f5b3d5ffd5b503415610167577f455243313936375f4e6f6e50617961626c65000000000000000000000000000060126000610164577f08c379a0000000000000000000000000000000000000000000000000000000005f52602060045260245260445260805ffd5b50505b6063806101723d393df37f9717cc4ad21cea1e4bb2dbe5bf433000ecfa3ebe067079ba42add6d1ca82a2e2545f3560e01c63dc9cc64560201b175f5260205f60086018845afa1561004457505f515b3d5ffd365f80375f803681845af43d5f803e1561005f573d5ff35b3d5ffd";
+        bytes memory _constructorArgs = bytes.concat(
+            abi.encode(address(_dictionary)),
+            abi.encode(bytes(_initData))
+        );
+        bytes memory _initCode = bytes.concat(_deploymentBytecode, _constructorArgs);
+        console2.logBytes(_initCode);
+        /// @solidity memory-safe-assembly
+        assembly {
+            instance := create(0, add(_initCode, 0x20), mload(_initCode))
+        }
+        if (instance == address(0)) {
+            revert ERC7546FailedCreateClone();
+        }
+    }
+
+    // /**
+    //  * @dev Deploys and returns the address of a clone that mimics the behaviour of `implementation`.
+    //  *
+    //  * This function uses the create2 opcode and a `salt` to deterministically deploy
+    //  * the clone. Using the same `implementation` and `salt` multiple time will revert, since
+    //  * the clones cannot be deployed twice at the same address.
+    //  */
+    // function cloneDeterministic(address implementation, bytes32 salt) internal returns (address instance) {
+    //     /// @solidity memory-safe-assembly
+    //     assembly {
+    //         // Cleans the upper 96 bits of the `implementation` word, then packs the first 3 bytes
+    //         // of the `implementation` address with the bytecode before the address.
+    //         mstore(0x00, or(shr(0xe8, shl(0x60, implementation)), 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000))
+    //         // Packs the remaining 17 bytes of `implementation` with the bytecode after the address.
+    //         mstore(0x20, or(shl(0x78, implementation), 0x5af43d82803e903d91602b57fd5bf3))
+    //         instance := create2(0, 0x09, 0x37, salt)
+    //     }
+    //     if (instance == address(0)) {
+    //         revert ERC1167FailedCreateClone();
+    //     }
+    // }
+
+    // /**
+    //  * @dev Computes the address of a clone deployed using {Clones-cloneDeterministic}.
+    //  */
+    // function predictDeterministicAddress(
+    //     address implementation,
+    //     bytes32 salt,
+    //     address deployer
+    // ) internal pure returns (address predicted) {
+    //     /// @solidity memory-safe-assembly
+    //     assembly {
+    //         let ptr := mload(0x40)
+    //         mstore(add(ptr, 0x38), deployer)
+    //         mstore(add(ptr, 0x24), 0x5af43d82803e903d91602b57fd5bf3ff)
+    //         mstore(add(ptr, 0x14), implementation)
+    //         mstore(ptr, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73)
+    //         mstore(add(ptr, 0x58), salt)
+    //         mstore(add(ptr, 0x78), keccak256(add(ptr, 0x0c), 0x37))
+    //         predicted := keccak256(add(ptr, 0x43), 0x55)
+    //     }
+    // }
+
+    // /**
+    //  * @dev Computes the address of a clone deployed using {Clones-cloneDeterministic}.
+    //  */
+    // function predictDeterministicAddress(
+    //     address implementation,
+    //     bytes32 salt
+    // ) internal view returns (address predicted) {
+    //     return predictDeterministicAddress(implementation, salt, address(this));
+    // }
+}

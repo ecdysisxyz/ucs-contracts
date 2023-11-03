@@ -1,0 +1,66 @@
+/// @title ERC7546 Proxy
+/// @notice SPDX-License-Identifier: MIT
+/// @author Kai Hiroi <https://github.com/KaiHiroi>
+/// @notice An upgradeable and cloneable proxy defined in ERC7546.
+
+#include "./Proxy.huff"
+#include "./ERC7546Utils.huff"
+
+/// @notice A constructor that upgrades the proxy with the dictionary and calls with the initData
+#define macro CONSTRUCTOR() = takes (0) returns (0) {
+    // Constructor argments: address _dictionary, bytes _initData
+
+    // Step 1: Load Args to Memory from InitCode
+    0x1d5 codesize sub           // [argsSize]
+    0x1d5 0x00 codecopy          // []
+
+    // Step 2: Upgrade Dictionary
+    0x00 mload                      // [addr]
+    dup1 UPGRADE_DICTIONARY_TO()    // [addr]
+
+    // Step 3: Check the init data & value
+    0x40 mload iszero               // [hasInitData(arg2), addr]    // bytes length
+    __Initialize_JUMP jumpi         // [addr]
+        // Step 4-1: Get the implementation address from the dictionary
+        0x60 mload 0xe0 shr         // [fSelector, dicAddr]
+        GET_IMPLEMENTATION()        // [implAddr]
+
+        // Step 4-2: Execute delegatecall
+        0x00 0x00                   // [retOffset, retSize, implAddr]
+        0x40 mload 0x80             // [argStart, argSize, retOffset, retSize, implAddr]
+        dup5 gas                    // [gas, implAddr, argStart, argSize, retOffset, retSize, implAddr]
+        delegatecall                // [success, implAddr]
+        // Copy the returned data
+        returndatasize              // [rds, success, implementation]
+        0x00                         // [0, rds, success, implementation]
+        0x00                        // [0, 0, rds, success, implementation]
+        returndatacopy              // [success, implementation]
+
+        // Return the returned data
+        iszero proxy_call_failed jumpi         // [implementation]
+
+        returndatasize 0x00
+
+        proxy_call_failed:
+            returndatasize 0x00 revert
+        // __DelegateCall_Success jumpi    // [implAddr]
+        //     0x00 0x00 revert
+        // __DelegateCall_Success:
+
+    // Step 4: Execute delegatecall with arg2 (initData bytes)
+    __Initialize_JUMP:              // [dicAddr]
+        pop _CHECK_NON_PAYABLE()    // []
+}
+
+// @notice Returns the current implementation address
+// @notice Overrideable
+#define macro IMPLEMENTATION() = takes (0) returns (1) {
+    GET_DICTIONARY()            // [dicAddr]
+    0x00 calldataload 0xe0 shr  // [fSelector, dicAddr]
+    GET_IMPLEMENTATION()        // [implAddr]
+}
+
+#define macro MAIN() = {
+    IMPLEMENTATION()
+    DELEGATE()
+}
