@@ -28,10 +28,10 @@ library ERC7546Utils {
     /**
      * @notice Specification 4
      * @dev The storage slot of the Dictionary contract which defines the dynamic implementations for this proxy.
-     * This slot is the keccak-256 hash of "eip0000.proxy.dictionary" subtracted by 1.
+     * This slot is the keccak-256 hash of "erc7546.proxy.dictionary" subtracted by 1.
      */
     // solhint-disable-next-line private-vars-leading-underscore
-    bytes32 internal constant DICTIONARY_SLOT = 0x9717cc4ad21cea1e4bb2dbe5bf433000ecfa3ebe067079ba42add6d1ca82a2e2;
+    bytes32 internal constant DICTIONARY_SLOT = 0x267691be3525af8a813d30db0c9e2bad08f63baecf6dceb85e2cf3676cff56f4;
 
     /**
      * @dev Returns the current dictionary address.

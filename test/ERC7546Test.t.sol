@@ -167,7 +167,7 @@ contract ERC7546Test is Test {
         vm.expectEmit();
         emit ERC7546Utils.DictionaryUpgraded(_fuzz_dictionary);
         // address _proxy = address(new ERC7546Proxy(_fuzz_dictionary, bytes("")));
-        address _proxy = deployProxy(_fuzz_dictionary, bytes(""));
+        address _proxy = deployProxy(_fuzz_dictionary, "");
         assertEq(
             address(uint160(uint256(vm.load(_proxy, ERC7546Utils.DICTIONARY_SLOT)))),
             _fuzz_dictionary

@@ -4,63 +4,206 @@
 /// @notice An upgradeable and cloneable proxy defined in ERC7546.
 
 #include "./Proxy.huff"
-#include "./ERC7546Utils.huff"
+// #include "./ERC7546Utils.huff"
 
 /// @notice A constructor that upgrades the proxy with the dictionary and calls with the initData
 #define macro CONSTRUCTOR() = takes (0) returns (0) {
     // Constructor argments: address _dictionary, bytes _initData
 
     // Step 1: Load Args to Memory from InitCode
-    0x1d5 codesize sub           // [argsSize]
-    0x1d5 0x00 codecopy          // []
+    0x19d codesize sub           // [argsSize]
+    0x19d 0x00 codecopy          // []  {0x00: dicAddr, 0x20: initData loc, 0x40: initData len, 0x60: initData data}
 
-    // Step 2: Upgrade Dictionary
-    0x00 mload                      // [addr]
-    dup1 UPGRADE_DICTIONARY_TO()    // [addr]
+    // Step 2: Upgrade Dictionary with Arg1 (_dictionary address)
+    0x00 mload                      // [dicAddr]
+    dup1 UPGRADE_DICTIONARY_TO()    // [dicAddr]
 
-    // Step 3: Check the init data & value
-    0x40 mload iszero               // [hasInitData(arg2), addr]    // bytes length
-    __Initialize_JUMP jumpi         // [addr]
-        // Step 4-1: Get the implementation address from the dictionary
-        0x60 mload 0xe0 shr         // [fSelector, dicAddr]
-        GET_IMPLEMENTATION()        // [implAddr]
+    // Step 3: Decide whether to execute initial call
+    0x40 mload                  // [hasInitData(arg2), dicAddr]
+    __Execute_Init jumpi        // [dicAddr]
 
-        // Step 4-2: Execute delegatecall
-        0x00 0x00                   // [retOffset, retSize, implAddr]
-        0x40 mload 0x80             // [argStart, argSize, retOffset, retSize, implAddr]
-        dup5 gas                    // [gas, implAddr, argStart, argSize, retOffset, retSize, implAddr]
-        delegatecall                // [success, implAddr]
-        // Copy the returned data
-        returndatasize              // [rds, success, implementation]
-        0x00                         // [0, rds, success, implementation]
-        0x00                        // [0, 0, rds, success, implementation]
-        returndatacopy              // [success, implementation]
+    // Step 4-1: Skip init
+    pop CHECK_NON_PAYABLE()
 
-        // Return the returned data
-        iszero proxy_call_failed jumpi         // [implementation]
+    // Step 4-2: Execute init
+    __Execute_Init:
+    // - Get the implementation address from the dictionary
+    0x60 mload 0xe0 shr         // [fSelector, dicAddr]
+    GET_IMPLEMENTATION()        // [implAddr]
 
-        returndatasize 0x00
+    // - Execute delegatecall with Arg2 (_initData bytes)
+    0x00 0x00                   // [retOffset, retSize, implAddr]
+    0x40 mload 0x60             // [argStart, argSize, retOffset, retSize, implAddr]
+    dup5 gas                    // [gas, implAddr, argStart, argSize, retOffset, retSize, implAddr]
+    delegatecall                // [success, implAddr]
 
-        proxy_call_failed:
-            returndatasize 0x00 revert
-        // __DelegateCall_Success jumpi    // [implAddr]
-        //     0x00 0x00 revert
-        // __DelegateCall_Success:
+    // - Copy the returned data
+    returndatasize              // [retSize, success, implAddr]
+    0x00                        // [retStart, retSize, success, implAddr]
+    0x00                        // [destOffset, retStart, rds, success, implAddr]
+    returndatacopy              // [success, implAddr]
 
-    // Step 4: Execute delegatecall with arg2 (initData bytes)
-    __Initialize_JUMP:              // [dicAddr]
-        pop _CHECK_NON_PAYABLE()    // []
+    // - Init Call Success or Fail
+    __Init_Call_Failed jumpi    // [implAddr]
+
+    //  - Success
+    pop returndatasize 0x00 return
+
+    //  - Faiiled
+    __Init_Call_Failed:
+    pop returndatasize 0x00 revert
 }
 
-// @notice Returns the current implementation address
-// @notice Overrideable
+/// @notice Returns the current implementation address
+/// @notice Overrideable
 #define macro IMPLEMENTATION() = takes (0) returns (1) {
     GET_DICTIONARY()            // [dicAddr]
     0x00 calldataload 0xe0 shr  // [fSelector, dicAddr]
-    GET_IMPLEMENTATION()        // [implAddr]
+    GET_IMPLEMENTATION()        // [implAddr]: Output Stack
 }
 
 #define macro MAIN() = {
     IMPLEMENTATION()
     DELEGATE()
+}
+
+
+
+// Function Definitions
+#define function getImplementation(bytes4 functionSelector) view returns (address)
+
+// ERC7546 Constants
+/// @notice keccak256("erc7546.proxy.dictionary") - 1
+#define constant _DICTIONARY_SLOT = 0x267691be3525af8a813d30db0c9e2bad08f63baecf6dceb85e2cf3676cff56f4
+
+// Events
+/// @notice Emitted when the dictionary is upgraded.
+#define event DictionaryUpgraded(address indexed dictionary)
+
+// Custom Errors
+/// @notice Emitted when the value is sent without initData
+#define constant ERC1967_NON_PAYABLE = 0x455243313936375f4e6f6e50617961626c650000000000000000000000000000
+#define constant ERC1967_NON_PAYABLE_LENGTH = 0x12
+#define macro REVERT_NON_PAYABLE(condition) = {
+    [ERC1967_NON_PAYABLE]
+    [ERC1967_NON_PAYABLE_LENGTH]
+    <condition>
+    REQUIRE()
+}
+
+// Implementation Macros
+
+/// @notice Returns the current implementation via dictionary
+#define macro GET_IMPLEMENTATION() = takes (2) returns (1) {
+    // Input Stack: [fSelector, dicAddr]
+
+    __FUNC_SIG(getImplementation)   // [getImplSelector, fSelector, dicAddr]
+    0x20 shl or
+    0x00 mstore                     // [dicAddr]
+    0x14 0x20                       // [retOffset, retSize, dicAddr]
+    0x08 0x18                       // [argOffset, argSize, retOffset, retSize, dicAddr]
+    dup5 gas                        // [gas, dicAddr, argOffset, argSize, retOffset, retSize, dicAddr]
+    staticcall                      // [success, dicAddr]
+
+    // Return the returned data
+    __GET_IMPL_SUCCESS jumpi  // [dicAddr]
+
+    // Revert
+    returndatasize 0x20 revert
+
+    // Success
+    __GET_IMPL_SUCCESS:
+    pop 0x20 mload              // [implAddr]
+
+    // __ImplCall_Success jumpi        // [dicAddr]
+    //     0x00 0x00 revert
+    // __ImplCall_Success:
+    //     pop
+}
+
+// UCS Macros
+
+/// @notice Returns the current dictionary
+#define macro GET_DICTIONARY() = takes (0) returns (1) {
+    [_DICTIONARY_SLOT] sload    // [address]: Output Stack
+}
+
+/// @notice Sets the new dictionary
+#define macro SET_DICTIONARY() = takes (1) returns (0) {
+    // Input Stack: [dicAddr]
+
+    // Check that the address is a contract
+    dup1 extcodesize    // [dicAddr.codesize, dicAddr]
+    __Has_Code jumpi    // [dicAddr]
+
+    // - The dictionary has no code [dicAddr]
+    pop NON_CONTRACT(0x00)       // []
+
+    // - The dictionary is a contract, so we can now set the dictionary slot
+    __Has_Code:
+    [_DICTIONARY_SLOT] sstore   // []
+}
+
+#define macro CHECK_NON_PAYABLE() = takes (0) returns (0) {
+    callvalue               // [value]
+    __With_Value jumpi
+
+    // Call without Value
+    0x14 0x0c return
+
+    // Call with Value
+    __With_Value:
+    REVERT_NON_PAYABLE(0x00)
+
+}
+
+#define macro UPGRADE_DICTIONARY_TO() = takes (1) returns (0) {
+    // Input Stack: [dicAddr]
+
+    // Set dictionary
+    dup1 SET_DICTIONARY()   // [dicAddr]
+
+    // Emit event
+    __EVENT_HASH(DictionaryUpgraded)    // [sig, dicAddr]   Push the event sig hash (topic0) & addr (topic1)
+    0x00 0x00 log2                      // []               Emit the event without data
+}
+
+
+
+#define constant NON_CONTRACT_ERROR = 0x4e4f4e5f434f4e54524143540000000000000000000000000000000000000000
+#define constant NON_CONTRACT_LENGTH = 0x0c
+
+
+/// @notice Reverts with an "NON_CONTRACT" message if the condition is false
+#define macro NON_CONTRACT(condition) = takes (0) returns (0) {
+    [NON_CONTRACT_ERROR]            // ["NON_CONTRACT"]
+    [NON_CONTRACT_LENGTH]           // [12 (length), "NON_CONTRACT"]
+    <condition>                     // [condition, 12 (length), "NON_CONTRACT"]
+    REQUIRE()                       // []
+}
+
+
+
+
+
+#define macro REQUIRE() = takes (3) returns (0) {
+    // takes:       // [condition, message_length, message]
+    do_not_throw    // [do_not_throw_jumpdest, condition, message_length, message]
+    jumpi           // [message_length, message]
+    __ERROR(Error)  // [error_sig, , message_length, message]
+    0x00            // [mem_ptr, error_sig, message_length, message]
+    mstore          // [message_length, message]
+    0x20            // [message_offset, message_length, message]
+    0x04            // [message_offset_ptr, message_offset, message_length, message]
+    mstore          // [message_length, message]
+    0x24            // [message_length_ptr, message_length, message]
+    mstore          // [message]
+    0x44            // [message_ptr, message]
+    mstore          // []
+    0x80            // [size]
+    0x00            // [offset, size]
+    revert          // []
+    do_not_throw:   // [message_length, message]
+        pop         // [message]
+        pop         // []
 }
