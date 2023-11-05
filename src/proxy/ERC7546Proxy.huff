@@ -11,12 +11,12 @@
     // Constructor argments: address _dictionary, bytes _initData
 
     // Step 1: Load Args to Memory from InitCode
-    0x19d codesize sub           // [argsSize]
-    0x19d 0x00 codecopy          // []  {0x00: dicAddr, 0x20: initData loc, 0x40: initData len, 0x60: initData data}
+    0x1d5 codesize sub          // [argsSize]
+    0x1d5 0x00 codecopy         // []  {0x00: dicAddr, 0x20: initData loc, 0x40: initData len, 0x60: initData data}
 
     // Step 2: Upgrade Dictionary with Arg1 (_dictionary address)
-    0x00 mload                      // [dicAddr]
-    dup1 UPGRADE_DICTIONARY_TO()    // [dicAddr]
+    0x00 mload                  // [dicAddr]
+    UPGRADE_DICTIONARY_TO()     // [dicAddr] takes(dicAddr) return(dicAddr)
 
     // Step 3: Decide whether to execute initial call
     0x40 mload                  // [hasInitData(arg2), dicAddr]
@@ -129,7 +129,7 @@
 }
 
 /// @notice Sets the new dictionary
-#define macro SET_DICTIONARY() = takes (1) returns (0) {
+#define macro SET_DICTIONARY() = takes (1) returns (1) {
     // Input Stack: [dicAddr]
 
     // Check that the address is a contract
@@ -137,11 +137,12 @@
     __Has_Code jumpi    // [dicAddr]
 
     // - The dictionary has no code [dicAddr]
-    pop NON_CONTRACT(0x00)       // []
+    pop NON_CONTRACT(0x00)       // [] takes(0) returns-revert
 
     // - The dictionary is a contract, so we can now set the dictionary slot
     __Has_Code:
-    [_DICTIONARY_SLOT] sstore   // []
+    dup1                        // [dicAddr, dicAddr]
+    [_DICTIONARY_SLOT] sstore   // [dicAddr] : Output Stack
 }
 
 #define macro CHECK_NON_PAYABLE() = takes (0) returns (0) {
@@ -157,15 +158,15 @@
 
 }
 
-#define macro UPGRADE_DICTIONARY_TO() = takes (1) returns (0) {
+#define macro UPGRADE_DICTIONARY_TO() = takes (1) returns (1) {
     // Input Stack: [dicAddr]
 
     // Set dictionary
-    dup1 SET_DICTIONARY()   // [dicAddr]
+    SET_DICTIONARY()    // [dicAddr] takes(dicAddr) returns(dicAddr)
 
     // Emit event
-    __EVENT_HASH(DictionaryUpgraded)    // [sig, dicAddr]   Push the event sig hash (topic0) & addr (topic1)
-    0x00 0x00 log2                      // []               Emit the event without data
+    dup1 __EVENT_HASH(DictionaryUpgraded)    // [sig, dicAddr, dicAddr]   Push the event sig hash (topic0) & addr (topic1)
+    0x00 0x00 log2                      // [dicAddr]               Emit the event without data
 }
 
 
@@ -185,6 +186,7 @@
 
 
 
+#define error Error(string)
 
 #define macro REQUIRE() = takes (3) returns (0) {
     // takes:       // [condition, message_length, message]
