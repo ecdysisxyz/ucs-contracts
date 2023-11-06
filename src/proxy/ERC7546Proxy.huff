@@ -11,8 +11,8 @@
     // Constructor argments: address _dictionary, bytes _initData
 
     // Step 1: Load Args to Memory from InitCode
-    0x1dc codesize sub          // [argsSize]
-    0x1dc 0x00 codecopy         // []  {0x00: dicAddr, 0x20: initData loc, 0x40: initData len, 0x60: initData data}
+    0x1ea codesize sub          // [argsSize]
+    0x1ea 0x00 codecopy         // []  {0x00: dicAddr, 0x20: initData loc, 0x40: initData len, 0x60: initData data}
 
     // Step 2: Upgrade Dictionary with Arg1 (_dictionary address)
     0x00 mload                  // [dicAddr] {same}
@@ -60,9 +60,16 @@
 /// @notice Returns the current implementation address
 /// @notice Overrideable
 #define macro IMPLEMENTATION() = takes (0) returns (1) {
+    // takes:                   // []
     GET_DICTIONARY()            // [dicAddr]
-    0x00 calldataload 0xe0 shr  // [fSelector, dicAddr]
-    GET_IMPLEMENTATION()        // [implAddr]: Output Stack
+    0x04 0x00 0x00 calldatacopy // [dicAddr] {0x00: sig}
+    // 0x00 calldataload 0xe0 shr  // [fSelector, dicAddr]
+    // 0x00 calldataload           // [calldata[0], dicAddr]
+    // 0x00 mstore
+    // 0x00 calldataload           // [fSelector, dicAddr]
+    0x00 mload
+    GET_IMPLEMENTATION()        // [implAddr]
+    // returns:                 // [implAddr]
 }
 
 #define macro MAIN() = {
@@ -96,32 +103,37 @@
 
 // Implementation Macros
 
+// dc9cc645
+// 00000000000000000000000000000000000000000000000000000000aaaaaaaa
+// 00000000000000000000000000000000000000000000000000000000
+
 /// @notice Returns the current implementation via dictionary
 #define macro GET_IMPLEMENTATION() = takes (2) returns (1) {
-    // Input Stack: [fSelector, dicAddr]
+    // takes:                       // [fSelector, dicAddr]
 
     __FUNC_SIG(getImplementation)   // [getImplSelector, fSelector, dicAddr]
-    0x20 shl or
-    0x00 mstore                     // [dicAddr]
-    0x14 0x20                       // [retOffset, retSize, dicAddr]
-    0x08 0x18                       // [argOffset, argSize, retOffset, retSize, dicAddr]
+    // 0x00 mstore            // [fSelector, dicAddr] {0x00: getImplSelector}
+    0xe0 shl 0x00 mstore            // [fSelector, dicAddr] {0x00: getImplSelector}
+    0x04 mstore                     // [dicAddr] {0x00: getImplSelector, 0x04: fSelector}
+    0x00 0x00                       // [retOffset, retSize, dicAddr]
+    0x24 0x00                       // [argOffset, argSize, retOffset, retSize, dicAddr]
     dup5 gas                        // [gas, dicAddr, argOffset, argSize, retOffset, retSize, dicAddr]
     staticcall                      // [success, dicAddr]
 
     // Return the returned data
-    __GET_IMPL_SUCCESS jumpi  // [dicAddr]
+    __GET_IMPL_SUCCESS jumpi        // [dicAddr]
 
     // Revert
-    returndatasize 0x20 revert
+    pop returndatasize 0x00 0x00 returndatacopy
+    returndatasize 0x00 revert
 
     // Success
     __GET_IMPL_SUCCESS:
-    pop 0x20 mload              // [implAddr]
+    pop                             // []
+    returndatasize 0x00 0x00 returndatacopy
+    0x00 mload              // [implAddr]
 
-    // __ImplCall_Success jumpi        // [dicAddr]
-    //     0x00 0x00 revert
-    // __ImplCall_Success:
-    //     pop
+    // returns:                 // [implAddr]
 }
 
 // UCS Macros
