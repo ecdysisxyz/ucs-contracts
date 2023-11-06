@@ -23,7 +23,8 @@ library ERC7546Utils {
     /**
     * @dev The `dictionary` of the proxy is invalid.
      */
-    error ERC7546InvalidDictionary(address dictionary);
+    // error ERC7546InvalidDictionary(address dictionary);
+    error NON_CONTRACT();
 
     /**
      * @notice Specification 4
@@ -46,7 +47,8 @@ library ERC7546Utils {
      */
     function _setDictionary(address newDictionary) private {
         if (newDictionary.code.length == 0) {
-            revert ERC7546InvalidDictionary(newDictionary);
+            // revert ERC7546InvalidDictionary(newDictionary);
+            revert("NON_CONTRACT");
         }
         StorageSlot.getAddressSlot(DICTIONARY_SLOT).value = newDictionary;
     }

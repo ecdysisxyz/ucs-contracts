@@ -11,8 +11,8 @@
     // Constructor argments: address _dictionary, bytes _initData
 
     // Step 1: Load Args to Memory from InitCode
-    0x1ea codesize sub          // [argsSize]
-    0x1ea 0x00 codecopy         // []  {0x00: dicAddr, 0x20: initData loc, 0x40: initData len, 0x60: initData data}
+    0x1f9 codesize sub          // [argsSize]
+    0x1f9 0x00 codecopy         // []  {0x00: dicAddr, 0x20: initData loc, 0x40: initData len, 0x60: initData data}
 
     // Step 2: Upgrade Dictionary with Arg1 (_dictionary address)
     0x00 mload                  // [dicAddr] {same}
@@ -153,6 +153,10 @@
 
     // <The dictionary has no code> Revert
     pop                 // []
+    0x00 0x00 mstore
+    0x00 0x20 mstore
+    0x00 0x40 mstore
+    0x00 0x60 mstore
     NON_CONTRACT(0x00)  // [] takes(0) always revert
     // always revert
 

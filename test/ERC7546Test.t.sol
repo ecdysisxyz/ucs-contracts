@@ -155,11 +155,15 @@ contract ERC7546Test is Test {
     function test_Proxy_Success_constructor_setDictionary(address _fuzz_dictionary) public {
         /// @dev Exclude precompiles & console
         vm.assume(uint256(uint160(_fuzz_dictionary)) > 10);
-        vm.assume(_fuzz_dictionary != 0x000000000000000000636F6e736F6c652e6c6f67);
+        vm.assume(
+            _fuzz_dictionary != 0x000000000000000000636F6e736F6c652e6c6f67
+            && _fuzz_dictionary != address(proxy)
+            && _fuzz_dictionary != 0x72384992222BE015DE0146a6D7E5dA0E19d2Ba49
+        );
 
-        if (_fuzz_dictionary.code.length == 0 &&
-            _isNotTestContracts(_fuzz_dictionary) &&
-            _fuzz_dictionary != address(dictionary)
+        if (_fuzz_dictionary.code.length == 0
+            && _isNotTestContracts(_fuzz_dictionary)
+            && _fuzz_dictionary != address(dictionary)
         ) {
             deployCodeTo("Dummy.sol", _fuzz_dictionary);
         }
@@ -180,7 +184,8 @@ contract ERC7546Test is Test {
             _fuzz_dictionary != address(dictionary) &&
             _fuzz_dictionary != address(proxy)
         );
-        vm.expectRevert(abi.encodeWithSelector(ERC7546Utils.ERC7546InvalidDictionary.selector, _fuzz_dictionary));
+        // vm.expectRevert(abi.encodeWithSelector(ERC7546Utils.ERC7546InvalidDictionary.selector, _fuzz_dictionary));
+        vm.expectRevert("NON_CONTRACT");
         deployProxy(_fuzz_dictionary, "");
     }
 
@@ -189,6 +194,7 @@ contract ERC7546Test is Test {
      */
     function test_Proxy_Success_delegatecall_AllCallsAreForwardedToDictionary(bytes calldata _fuzz_data, address _fuzz_implementation) public {
         vm.assume(_fuzz_data.length >= 4 && bytes4(_fuzz_data) != bytes4(""));
+        vm.assume(_fuzz_implementation != address(vm));
         test_Dictionary_Success_setImplementation_getImplementation(bytes4(_fuzz_data), _fuzz_implementation);
 
         vm.expectCall(dictionary, abi.encodeWithSelector(Dictionary.getImplementation.selector, bytes4(_fuzz_data)));
@@ -210,6 +216,7 @@ contract ERC7546Test is Test {
             addr != address(console2)
             && addr != address(vm)
             && addr != address(this)
+            && addr != 0x4e59b44847b379578588920cA78FbF26c0B4956C // Create2Deployer
         );
     }
 }

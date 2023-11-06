@@ -1,3 +1,8 @@
+# UC
+||Solidity|Huff|
+|code size|331 bytes|109 bytes|
+|deployment gas|90506|45276|
+
 ## Foundry
 
 **Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
