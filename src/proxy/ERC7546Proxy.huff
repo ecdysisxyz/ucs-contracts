@@ -11,22 +11,23 @@
     // Constructor argments: address _dictionary, bytes _initData
 
     // Step 1: Load Args to Memory from InitCode
-    0x1d5 codesize sub          // [argsSize]
-    0x1d5 0x00 codecopy         // []  {0x00: dicAddr, 0x20: initData loc, 0x40: initData len, 0x60: initData data}
+    0x1dc codesize sub          // [argsSize]
+    0x1dc 0x00 codecopy         // []  {0x00: dicAddr, 0x20: initData loc, 0x40: initData len, 0x60: initData data}
 
     // Step 2: Upgrade Dictionary with Arg1 (_dictionary address)
-    0x00 mload                  // [dicAddr]
-    UPGRADE_DICTIONARY_TO()     // [dicAddr] takes(dicAddr) return(dicAddr)
+    0x00 mload                  // [dicAddr] {same}
+    UPGRADE_DICTIONARY_TO()     // [dicAddr] takes(dicAddr) return(dicAddr) {same}
 
     // Step 3: Decide whether to execute initial call
     0x40 mload                  // [hasInitData(arg2), dicAddr]
     __Execute_Init jumpi        // [dicAddr]
 
-    // Step 4-1: Skip init
-    pop CHECK_NON_PAYABLE()
+    // Step 4-1: Skip init : Check whether call with value (revert) or not (return)
+    pop                         // []
+    SKIP_INIT()                 // [] return or revert
 
     // Step 4-2: Execute init
-    __Execute_Init:
+    __Execute_Init:             // [dicAddr]
     // - Get the implementation address from the dictionary
     0x60 mload 0xe0 shr         // [fSelector, dicAddr]
     GET_IMPLEMENTATION()        // [implAddr]
@@ -37,21 +38,23 @@
     dup5 gas                    // [gas, implAddr, argStart, argSize, retOffset, retSize, implAddr]
     delegatecall                // [success, implAddr]
 
-    // - Copy the returned data
-    returndatasize              // [retSize, success, implAddr]
-    0x00                        // [retStart, retSize, success, implAddr]
-    0x00                        // [destOffset, retStart, rds, success, implAddr]
-    returndatacopy              // [success, implAddr]
-
     // - Init Call Success or Fail
-    __Init_Call_Failed jumpi    // [implAddr]
+    __Init_Call_Success jumpi    // [implAddr]
+
+    //  - Failed
+    pop
+    returndatasize              // [retSize]
+    0x00                        // [retStart, retSize]
+    0x00                        // [destOffset, retStart, retSize]
+    returndatacopy              // []
+    returndatasize 0x00 revert
 
     //  - Success
-    pop returndatasize 0x00 return
+    __Init_Call_Success:
+    pop
 
-    //  - Faiiled
-    __Init_Call_Failed:
-    pop returndatasize 0x00 revert
+    // Constructor end
+    __CONSTRUCTOR_END:
 }
 
 /// @notice Returns the current implementation address
@@ -130,43 +133,47 @@
 
 /// @notice Sets the new dictionary
 #define macro SET_DICTIONARY() = takes (1) returns (1) {
-    // Input Stack: [dicAddr]
+    // takes:           // [dicAddr]
 
     // Check that the address is a contract
-    dup1 extcodesize    // [dicAddr.codesize, dicAddr]
+    dup1 extcodesize    // [codesize, dicAddr]
     __Has_Code jumpi    // [dicAddr]
 
-    // - The dictionary has no code [dicAddr]
-    pop NON_CONTRACT(0x00)       // [] takes(0) returns-revert
+    // <The dictionary has no code> Revert
+    pop                 // []
+    NON_CONTRACT(0x00)  // [] takes(0) always revert
+    // always revert
 
-    // - The dictionary is a contract, so we can now set the dictionary slot
-    __Has_Code:
-    dup1                        // [dicAddr, dicAddr]
-    [_DICTIONARY_SLOT] sstore   // [dicAddr] : Output Stack
+    // <The dictionary is a contract> Set the dictionary
+    __Has_Code:                     // [dicAddr]
+    dup1 [_DICTIONARY_SLOT] sstore  // [dicAddr]
+
+    // returns:                     // [dicAddr]
 }
 
-#define macro CHECK_NON_PAYABLE() = takes (0) returns (0) {
+#define macro SKIP_INIT() = takes (0) returns (0) {
     callvalue               // [value]
-    __With_Value jumpi
+    __With_Value jumpi      // []
 
-    // Call without Value
-    0x14 0x0c return
+    // Call without Value   // []
+    __CONSTRUCTOR_END jump      // []
 
-    // Call with Value
-    __With_Value:
-    REVERT_NON_PAYABLE(0x00)
-
+    // Call with Value          // []
+    __With_Value:               // []
+    REVERT_NON_PAYABLE(0x00)    // [] revert
 }
 
 #define macro UPGRADE_DICTIONARY_TO() = takes (1) returns (1) {
-    // Input Stack: [dicAddr]
+    // Input Stack: [dicAddr], Output Stack: [dicAddr]
 
     // Set dictionary
     SET_DICTIONARY()    // [dicAddr] takes(dicAddr) returns(dicAddr)
 
     // Emit event
-    dup1 __EVENT_HASH(DictionaryUpgraded)    // [sig, dicAddr, dicAddr]   Push the event sig hash (topic0) & addr (topic1)
-    0x00 0x00 log2                      // [dicAddr]               Emit the event without data
+    dup1                                // [dicAddr, dicAddr]
+    __EVENT_HASH(DictionaryUpgraded)    // [sig, dicAddr, dicAddr]                  Push the event sig hash (topic0) & addr (topic1)
+    0x00 0x00                           // [memOffset, size, sig, dicAddr, dicAddr] Without data
+    log2                                // [dicAddr]: Output Stack                  Emit the event
 }
 
 
@@ -181,6 +188,12 @@
     [NON_CONTRACT_LENGTH]           // [12 (length), "NON_CONTRACT"]
     <condition>                     // [condition, 12 (length), "NON_CONTRACT"]
     REQUIRE()                       // []
+
+    // 08c379a0
+    // 0000000000000000000000000000000000000000000000000000000000000020
+    // 000000000000000000000000000000000000000000000000000000000000000c
+    // 4e4f4e5f434f4e54524143540000000000000000000000000000000000000000
+    // 00000000000000000000000000000000000000000000000000000000
 }
 
 
@@ -193,18 +206,28 @@
     do_not_throw    // [do_not_throw_jumpdest, condition, message_length, message]
     jumpi           // [message_length, message]
     __ERROR(Error)  // [error_sig, , message_length, message]
-    0x00            // [mem_ptr, error_sig, message_length, message]
-    mstore          // [message_length, message]
+
+    // override memory 0x00 with error_sig
+    0x00 mstore     // [message_length, message]
+
+    // override memory 0x04 with error message offset (0x20)
     0x20            // [message_offset, message_length, message]
     0x04            // [message_offset_ptr, message_offset, message_length, message]
     mstore          // [message_length, message]
+
+    // override memory 0x24 with error message length (initialStack[1]: message_length)
     0x24            // [message_length_ptr, message_length, message]
     mstore          // [message]
+
+    // override memory 0x44 with error message body (initialStack[2]: message)
     0x44            // [message_ptr, message]
     mstore          // []
+
     0x80            // [size]
     0x00            // [offset, size]
     revert          // []
+
+    //
     do_not_throw:   // [message_length, message]
         pop         // [message]
         pop         // []
