@@ -59,7 +59,7 @@
 
 /// @notice Returns the current dictionary
 #define macro GET_DICTIONARY() = takes (0) returns (1) {
-    [_DICTIONARY_SLOT] sload    // [address]
+    [_DICTIONARY_SLOT] sload    // [address]: Output Stack
 }
 
 /// @notice Sets the new dictionary
@@ -76,20 +76,25 @@
         [_DICTIONARY_SLOT] sstore   // []
 }
 
-#define macro _CHECK_NON_PAYABLE() = takes (0) returns (0) {
+#define macro CHECK_NON_PAYABLE() = takes (0) returns (0) {
     callvalue iszero               // [hasValue()]
-    __NON_PAYABLE_JUMP jumpi
-        REVERT_NON_PAYABLE(0x00)
-    __NON_PAYABLE_JUMP:
+    __CallValue_Is_Zero_JUMP jumpi
+
+    // CallValue is NOT Zero
+    REVERT_NON_PAYABLE(0x00)
+
+    // CallValue is Zero
+    __CallValue_Is_Zero_JUMP:
+    0x14 0x00 return
 }
 
 #define macro UPGRADE_DICTIONARY_TO() = takes (1) returns (0) {
-    // Input Stack: [addr]
+    // Input Stack: [dicAddr]
 
     // Set dictionary
-    dup1 SET_DICTIONARY()   // [addr]
+    dup1 SET_DICTIONARY()   // [dicAddr]
 
     // Emit event
-    __EVENT_HASH(DictionaryUpgraded)    // [sig, addr]  Push the event sig hash (topic0) & addr (topic1)
-    0x00 0x00 log2                      // []           Emit the event without data
+    __EVENT_HASH(DictionaryUpgraded)    // [sig, dicAddr]   Push the event sig hash (topic0) & addr (topic1)
+    0x00 0x00 log2                      // []               Emit the event without data
 }
