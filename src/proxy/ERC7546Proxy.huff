@@ -11,8 +11,8 @@
     // Constructor argments: address _dictionary, bytes _initData
 
     // Step 1: Load Args to Memory from InitCode
-    0x1f6 codesize sub          // [argsSize]
-    0x1f6 0x00 codecopy         // []  {0x00: dicAddr, 0x20: initData loc, 0x40: initData len, 0x60: initData data}
+    0x218 codesize sub          // [argsSize]
+    0x218 0x00 codecopy         // []  {0x00: dicAddr, 0x20: initData loc, 0x40: initData len, 0x60: initData data}
 
     // Step 2: Upgrade Dictionary with Arg1 (_dictionary address)
     0x00 mload                  // [dicAddr] {same}
@@ -31,6 +31,7 @@
     // - Get the implementation address from the dictionary
     // 0x60 mload 0xe0 shr      // [fSelector, dicAddr]
     0x60 mload                  // [fSelector, dicAddr]
+    0xffffffff00000000000000000000000000000000000000000000000000000000 and
     GET_IMPLEMENTATION()        // [implAddr]
 
     // - Execute delegatecall with Arg2 (_initData bytes)
