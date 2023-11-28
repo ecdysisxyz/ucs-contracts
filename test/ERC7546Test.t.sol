@@ -219,4 +219,13 @@ contract ERC7546Test is Test {
             && addr != 0x4e59b44847b379578588920cA78FbF26c0B4956C // Create2Deployer
         );
     }
+
+    function test_Proxy_Success_SimpleReceiveETH(uint256 _fuzz_amount) external {
+        vm.assume(address(this).balance >= _fuzz_amount);
+        uint256 _proxyBalanceBeforeReceive = proxy.balance;
+        payable(proxy).call{value: _fuzz_amount}("");
+        uint256 _proxyBalanceAfterReceive = proxy.balance;
+
+        assertLe(_proxyBalanceBeforeReceive, _proxyBalanceAfterReceive);
+    }
 }

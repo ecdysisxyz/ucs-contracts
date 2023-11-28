@@ -25,4 +25,6 @@ contract ERC7546Proxy is Proxy {
     function _implementation() internal view override returns (address) {
         return IDictionary(ERC7546Utils.getDictionary()).getImplementation(msg.sig);
     }
+
+    receive() external payable {}
 }

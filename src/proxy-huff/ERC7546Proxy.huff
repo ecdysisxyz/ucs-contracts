@@ -11,8 +11,8 @@
     // Constructor argments: address _dictionary, bytes _initData
 
     // Step 1: Load Args to Memory from InitCode
-    0x218 codesize sub          // [argsSize]
-    0x218 0x00 codecopy         // []  {0x00: dicAddr, 0x20: initData loc, 0x40: initData len, 0x60: initData data}
+    0x222 codesize sub          // [argsSize]
+    0x222 0x00 codecopy         // []  {0x00: dicAddr, 0x20: initData loc, 0x40: initData len, 0x60: initData data}
 
     // Step 2: Upgrade Dictionary with Arg1 (_dictionary address)
     0x00 mload                  // [dicAddr] {same}
@@ -75,8 +75,14 @@
 }
 
 #define macro MAIN() = {
+    calldatasize iszero
+    __Receive jumpi
+
     IMPLEMENTATION()
     DELEGATE()
+
+    __Receive:
+    0x00 0x00 return
 }
 
 
