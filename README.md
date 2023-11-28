@@ -1,72 +1,27 @@
-# UC
+# Upgradeable Clone Standard (UCS) Contracts Library
+
+A library for upgradeable & cloneable smart contract development.
+
+## Contracts
+Implementations of [ERC-7546: Upgradeable Clone](https://ercs.ethereum.org/ERCS/erc-7546)
+- ERC7546Proxy contract
+- Dictionary contract
+
+## Optimized proxy contract
+To deploy the Huff-optimized Proxy contract from Solidity, the `ERC7546Clones.sol` library contract is utilized.
+
 ||Solidity|Huff|
-|--|--|--|
+|--:|--|--|
 |code size|331 bytes|109 bytes|
-|deployment gas|90506|45276|
+|deployment gas without initData|90506|45276|
 
-## Foundry
-
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
-
-Foundry consists of:
-
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
-
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
+## Installation
+To install with [Foundry](https://github.com/foundry-rs/foundry):
+```bash
+forge install ecdysisxyz/ucs-lib
 ```
 
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+***Post-Installation***: If necessary, configure remappings to ensure correct integration with your project's dependencies. Below is an example:
+```remappings.txt
+@ucs-lib/=lib/ucs-lib/src/
 ```
