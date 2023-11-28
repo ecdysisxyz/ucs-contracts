@@ -12,8 +12,8 @@ To deploy the Huff-optimized Proxy contract from Solidity, the `ERC7546Clones.so
 
 ||Solidity|Huff|
 |--:|--|--|
-|code size|331 bytes|109 bytes|
-|deployment gas without initData|90506|45276|
+|code size|338 bytes|119 bytes|
+|deployment gas without initData|91,906 gas|47,276 gas|
 
 ## Installation
 To install with [Foundry](https://github.com/foundry-rs/foundry):
