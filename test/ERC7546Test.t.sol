@@ -13,7 +13,7 @@ contract DictionaryHarness is Dictionary {
     constructor(address _admin) Dictionary(_admin) {}
 
     function getAdmin() public view returns (address) {
-        return admin;
+        return $Dictionary().admin;
     }
 }
 
@@ -205,6 +205,9 @@ contract ERC7546Test is Test {
         test_Dictionary_Success_setImplementation_getImplementation(bytes4(_fuzz_functionSelector), _fuzz_implementation);
 
         vm.assume(_fuzz_functionSelector != bytes4(_fuzz_calldata));
+
+        /// @dev when the calldata is empty, receive()
+        vm.assume(_fuzz_calldata.length != 0);
 
         vm.expectCall(dictionary, abi.encodeWithSelector(Dictionary.getImplementation.selector, bytes4(_fuzz_calldata)));
         vm.expectRevert(abi.encodeWithSelector(IDictionary.ImplementationNotFound.selector, bytes4(_fuzz_calldata)));
