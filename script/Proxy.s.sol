@@ -8,19 +8,16 @@ import {ERC7546Proxy} from "../src/proxy/ERC7546Proxy.sol";
 import {Dictionary} from "../src/dictionary/Dictionary.sol";
 
 contract Proxy is Script {
+    address admin = makeAddr("ADMIN");
+    address dictionary;
+    address proxy;
+
     function run() public {
-        // (address addr, uint256 pkey) = makeAddrAndKey("Deployer");
-        // // vm.startBroadcast(pkey);
-        // address dictionary = address(new Dictionary(addr));
-        // address proxy = HuffDeployer
-        //     .config()
-        //     .with_args(bytes.concat(
-        //         abi.encode(address(dictionary)),
-        //         abi.encode(bytes(""))
-        //     ))
-        //     .set_broadcast(true)
-        //     .deploy("proxy/ERC7546Proxy");
-        // vm.label(proxy, "ERC7546Proxy");
-        // console2.logBytes(proxy.code);
+        dictionary = address(new Dictionary(admin));
+        proxy = deployProxy(dictionary, "");
+    }
+
+    function deployProxy(address _dictionary, bytes memory _initData) internal virtual returns (address) {
+        return address(new ERC7546Proxy(_dictionary, _initData));
     }
 }
