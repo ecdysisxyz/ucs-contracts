@@ -7,7 +7,7 @@ Implementations of [ERC-7546: Upgradeable Clone](https://ercs.ethereum.org/ERCS/
 - ERC7546Proxy contract
 - Dictionary contract
 
-## Optimized proxy contract
+### Optimized proxy contract
 To deploy the Huff-optimized Proxy contract from Solidity, the `ERC7546Clones.sol` library contract is utilized.
 
 ||Solidity|Huff|
@@ -18,10 +18,10 @@ To deploy the Huff-optimized Proxy contract from Solidity, the `ERC7546Clones.so
 ## Installation
 To install with [Foundry](https://github.com/foundry-rs/foundry):
 ```bash
-forge install ecdysisxyz/ucs-lib
+forge install ecdysisxyz/ucs-contracts
 ```
 
 ***Post-Installation***: If necessary, configure remappings to ensure correct integration with your project's dependencies. Below is an example:
 ```remappings.txt
-@ucs-lib/=lib/ucs-lib/src/
+@ucs/=lib/ucs-contracts/src/
 ```
