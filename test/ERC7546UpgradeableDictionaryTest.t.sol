@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.22;
 
-// import {Test, console2} from "forge-std/Test.sol";
+import {Test, console2} from "forge-std/Test.sol";
 
 import {ERC7546Behaviour} from "./suite/ERC7546Behaviour.sol";
 
@@ -22,7 +22,14 @@ import {ERC7546Utils} from "../src/proxy/ERC7546Utils.sol";
 /**
     @title A Test Contract to verify Dictionary and Proxy compliance with specifications with forge-std/Test
  */
-contract ERC7546Test is ERC7546Behaviour {
+contract ERC7546UpgradeableDictionary is ERC7546Behaviour {
+    // /// @dev Due to a bug in Solidity, we are redefining the events from the external interface file that cannot be read.
+    // event ImplementationUpgraded(bytes4 indexed functionSelector, address indexed implementation);
+    // event AdminChanged(address previousAdmin, address newAdmin);
+
+    // address admin = makeAddr("ADMIN");
+    // address dictionary;
+    // address proxy;
 
     // function setUp() public virtual {
     //     dictionary = deployDictionary(admin);

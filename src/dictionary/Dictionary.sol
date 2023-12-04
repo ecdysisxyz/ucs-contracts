@@ -2,24 +2,18 @@
 pragma solidity ^0.8.22;
 
 import {IDictionary} from "./IDictionary.sol";
+import {DictionaryUtils} from "./DictionaryUtils.sol";
 
 /**
     @title ERC7546: Dictionary Contract
  */
 contract Dictionary is IDictionary {
-    /**
-     * @notice Specification 1.1
-     */
-    mapping(bytes4 functionSelector => address implementation) internal implementations;
-    address internal admin;
-    bytes4[] internal functionSelectorList;
-
     constructor(address _admin) {
         _setAdmin(_admin);
     }
 
     modifier onlyAdmin() {
-        if (msg.sender != admin) revert InvalidAccess(msg.sender);
+        if (msg.sender != DictionaryUtils.$Dictionary().admin) revert InvalidAccess(msg.sender);
         _;
     }
 
@@ -27,7 +21,7 @@ contract Dictionary is IDictionary {
      * @notice Specification 1.2.1
      */
     function getImplementation(bytes4 functionSelector) external view returns (address) {
-        address _impl = implementations[functionSelector];
+        address _impl = DictionaryUtils.$Dictionary().implementations[functionSelector];
         if (_impl == address(0)) revert ImplementationNotFound(functionSelector);
         return _impl;
     }
@@ -41,16 +35,17 @@ contract Dictionary is IDictionary {
         }
 
         // In the case of a new functionSelector, add to the functionSelectorList.
-        bool hasSetFunctionSelector;
-        for (uint i; i < functionSelectorList.length; ++i) {
-            if (functionSelector == functionSelectorList[i]) {
-                hasSetFunctionSelector = true;
+        bool _hasSetFunctionSelector;
+        bytes4[] memory _functionSelectorList = DictionaryUtils.$Dictionary().functionSelectorList;
+        for (uint i; i < _functionSelectorList.length; ++i) {
+            if (functionSelector == _functionSelectorList[i]) {
+                _hasSetFunctionSelector = true;
             }
         }
-        if (!hasSetFunctionSelector) functionSelectorList.push(functionSelector);
+        if (!_hasSetFunctionSelector) DictionaryUtils.$Dictionary().functionSelectorList.push(functionSelector);
 
         // Add the pair of functionSelector and implementation address to the mapping.
-        implementations[functionSelector] = implementation;
+        DictionaryUtils.$Dictionary().implementations[functionSelector] = implementation;
 
         // Notify the change of the mapping.
         emit ImplementationUpgraded(functionSelector, implementation);
@@ -61,21 +56,21 @@ contract Dictionary is IDictionary {
      * @dev The interfaceId equals to the function selector
      */
     function supportsInterface(bytes4 interfaceId) public view returns (bool) {
-        return implementations[interfaceId] != address(0);
+        return DictionaryUtils.$Dictionary().implementations[interfaceId] != address(0);
     }
 
     /**
      * @notice Specification 3.1.1.2
      */
     function supportsInterfaces() external view returns (bytes4[] memory) {
-        return functionSelectorList;
+        return DictionaryUtils.$Dictionary().functionSelectorList;
     }
 
-    function _setAdmin(address _newAdmin) private {
-        address _prevAdmin = admin;
-        admin = _newAdmin;
+    function _setAdmin(address newAdmin) internal {
+        address _prevAdmin = DictionaryUtils.$Dictionary().admin;
 
-        /// @notice Specification 1.1
-        emit AdminChanged(_prevAdmin, _newAdmin);
+        DictionaryUtils.$Dictionary().admin = newAdmin;
+
+        emit AdminChanged(_prevAdmin, newAdmin);
     }
 }
