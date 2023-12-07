@@ -9,14 +9,16 @@ import {IDictionary} from "../../src/dictionary/IDictionary.sol";
 import {ERC7546Proxy} from "../../src/proxy/ERC7546Proxy.sol";
 import {ERC7546Utils} from "../../src/proxy/ERC7546Utils.sol";
 
-/// @dev A Harness Contract to retrieve the admin address declared as internal.
-contract DictionaryHarness is Dictionary {
-    constructor(address _admin) Dictionary(_admin) {}
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-    function getAdmin() public view returns (address) {
-        return DictionaryUtils.$Dictionary().admin;
-    }
-}
+// /// @dev A Harness Contract to retrieve the owner address declared as internal.
+// contract DictionaryHarness is Dictionary {
+//     constructor(address _owner) Dictionary(_owner) {}
+
+//     function getAdmin() public view returns (address) {
+//         return DictionaryUtils.$Dictionary().owner;
+//     }
+// }
 
 /**
     @title A Test Contract to verify Dictionary and Proxy compliance with specifications with forge-std/Test
@@ -26,22 +28,17 @@ abstract contract ERC7546Behaviour is Test {
     event ImplementationUpgraded(bytes4 indexed functionSelector, address indexed implementation);
     event AdminChanged(address previousAdmin, address newAdmin);
 
-    address admin = makeAddr("ADMIN");
+    address owner = makeAddr("OWNER");
     address dictionary;
     address proxy;
 
     function setUp() public virtual {
-        dictionary = deployDictionary(admin);
-        proxy = deployProxy(dictionary, "");
+        dictionary = _deployDictionary(owner);
+        proxy = _deployProxy(dictionary, "");
     }
 
-    function deployDictionary(address admin) internal virtual returns (address) {
-        return address(new Dictionary(admin));
-    }
-
-    function deployProxy(address _dictionary, bytes memory _initData) internal virtual returns (address) {
-        return address(new ERC7546Proxy(_dictionary, _initData));
-    }
+    function _deployDictionary(address _owner) internal virtual returns (address);
+    function _deployProxy(address _dictionary, bytes memory _initData) internal virtual returns (address);
 
     /**
      *  Dictionary
@@ -72,7 +69,7 @@ abstract contract ERC7546Behaviour is Test {
             deployCodeTo("Dummy.sol", _fuzz_implementation);
         }
 
-        vm.prank(admin);
+        vm.prank(owner);
         vm.expectEmit();
         emit ImplementationUpgraded(_fuzz_functionSelector, _fuzz_implementation);
         Dictionary(dictionary).setImplementation(_fuzz_functionSelector, _fuzz_implementation);
@@ -82,7 +79,7 @@ abstract contract ERC7546Behaviour is Test {
     function test_Dictionary_Revert_setImplementation_WithEmptyCode(bytes4 _fuzz_functionSelector, address _fuzz_implementation) public {
         vm.assume(_fuzz_implementation.code.length == 0);
 
-        vm.prank(admin);
+        vm.prank(owner);
         vm.expectRevert(abi.encodeWithSelector(IDictionary.InvalidImplementation.selector, _fuzz_implementation));
         Dictionary(dictionary).setImplementation(_fuzz_functionSelector, _fuzz_implementation);
     }
@@ -90,16 +87,20 @@ abstract contract ERC7546Behaviour is Test {
     /**
         @notice Verify (3)
      */
-    function test_Dictionary_Success_constructor_setAdmin(address _fuzz_admin) public {
+    function test_Dictionary_Success_constructor_setOwner(address _fuzz_owner) public {
+        vm.assume(_fuzz_owner != address(0));
         vm.expectEmit();
-        emit AdminChanged(address(0), _fuzz_admin);
-        DictionaryHarness _dictionary = new DictionaryHarness(_fuzz_admin);
-        assertEq(_dictionary.getAdmin(), _fuzz_admin);
+        emit Ownable.OwnershipTransferred(address(0), _fuzz_owner);
+        address _dictionary = _deployDictionary(_fuzz_owner);
+        // emit AdminChanged(address(0), _fuzz_owner);
+        // DictionaryHarness _dictionary = new DictionaryHarness(_fuzz_owner);
+        assertEq(Ownable(_dictionary).owner(), _fuzz_owner);
     }
-    function test_Dictionary_Revert_setImplementation_NotAdmin(bytes4 _fuzz_functionSelector, address _fuzz_implementation, address _fuzz_admin) public {
-        vm.assume(_fuzz_admin != admin);
-        vm.prank(_fuzz_admin);
-        vm.expectRevert(abi.encodeWithSelector(IDictionary.InvalidAccess.selector, _fuzz_admin));
+    function test_Dictionary_Revert_setImplementation_NotAdmin(bytes4 _fuzz_functionSelector, address _fuzz_implementation, address _fuzz_owner) public {
+        vm.assume(_fuzz_implementation != address(0));
+        vm.assume(_fuzz_owner != owner);
+        vm.prank(_fuzz_owner);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, _fuzz_owner));
         Dictionary(dictionary).setImplementation(_fuzz_functionSelector, _fuzz_implementation);
     }
 
@@ -176,7 +177,7 @@ abstract contract ERC7546Behaviour is Test {
         vm.expectEmit();
         emit ERC7546Utils.DictionaryUpgraded(_fuzz_dictionary);
         // address _proxy = address(new ERC7546Proxy(_fuzz_dictionary, bytes("")));
-        address _proxy = deployProxy(_fuzz_dictionary, "");
+        address _proxy = _deployProxy(_fuzz_dictionary, "");
         assertEq(
             address(uint160(uint256(vm.load(_proxy, ERC7546Utils.DICTIONARY_SLOT)))),
             _fuzz_dictionary
@@ -191,7 +192,7 @@ abstract contract ERC7546Behaviour is Test {
         );
         // vm.expectRevert(abi.encodeWithSelector(ERC7546Utils.ERC7546InvalidDictionary.selector, _fuzz_dictionary));
         vm.expectRevert("NON_CONTRACT");
-        deployProxy(_fuzz_dictionary, "");
+        _deployProxy(_fuzz_dictionary, "");
     }
 
     /**
@@ -202,7 +203,7 @@ abstract contract ERC7546Behaviour is Test {
         vm.assume(_fuzz_implementation != address(vm));
         test_Dictionary_Success_setImplementation_getImplementation(bytes4(_fuzz_data), _fuzz_implementation);
 
-        vm.expectCall(dictionary, abi.encodeWithSelector(Dictionary.getImplementation.selector, bytes4(_fuzz_data)));
+        vm.expectCall(dictionary, abi.encodeWithSelector(IDictionary.getImplementation.selector, bytes4(_fuzz_data)));
         vm.expectCall(_fuzz_implementation, _fuzz_data);
         proxy.call(_fuzz_data);
     }
@@ -214,7 +215,7 @@ abstract contract ERC7546Behaviour is Test {
         /// @dev when the calldata is empty, receive()
         vm.assume(_fuzz_calldata.length != 0);
 
-        vm.expectCall(dictionary, abi.encodeWithSelector(Dictionary.getImplementation.selector, bytes4(_fuzz_calldata)));
+        vm.expectCall(dictionary, abi.encodeWithSelector(IDictionary.getImplementation.selector, bytes4(_fuzz_calldata)));
         vm.expectRevert(abi.encodeWithSelector(IDictionary.ImplementationNotFound.selector, bytes4(_fuzz_calldata)));
         proxy.call(_fuzz_calldata);
     }

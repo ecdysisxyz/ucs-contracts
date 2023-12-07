@@ -18,10 +18,15 @@ contract ERC7546HuffProxyTest is ERC7546Behaviour {
     //     proxy = deployProxy(dictionary, bytes(""));
     // }
 
-    function deployProxy(address _dictionary, bytes memory _initData) internal override returns (address) {
+    function _deployDictionary(address _owner) internal override returns (address) {
+        return address(new Dictionary(_owner));
+    }
+
+    function _deployProxy(address _dictionary, bytes memory _initData) internal override returns (address) {
         address proxy = ERC7546Clones.clone(_dictionary, _initData);
         vm.label(proxy, "ERC7546Proxy");
         console2.log("Proxy Deployed");
         return proxy;
     }
+
 }

@@ -29,11 +29,11 @@ contract ERC7546Test is ERC7546Behaviour {
     //     proxy = deployProxy(dictionary, "");
     // }
 
-    function deployDictionary(address admin) internal override returns (address) {
-        return address(new Dictionary(admin));
+    function _deployDictionary(address _owner) internal override returns (address) {
+        return address(new Dictionary(_owner));
     }
 
-    function deployProxy(address _dictionary, bytes memory _initData) internal override returns (address) {
+    function _deployProxy(address _dictionary, bytes memory _initData) internal override returns (address) {
         return address(new ERC7546Proxy(_dictionary, _initData));
     }
 

@@ -8,7 +8,6 @@ library DictionaryUtils {
     /// @custom:storage-location erc7201:UCS.Storage.Dictionary
     struct DictionaryStorage {
         mapping(bytes4 functionSelector => address implementation) implementations;
-        address admin;
         bytes4[] functionSelectorList;
     }
 

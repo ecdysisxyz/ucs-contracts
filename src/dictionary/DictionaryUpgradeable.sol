@@ -4,18 +4,20 @@ pragma solidity ^0.8.22;
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin-upgradeable/contracts/access/OwnableUpgradeable.sol";
 
-import {Dictionary} from "./Dictionary.sol";
+import {DictionaryBase} from "./DictionaryBase.sol";
+import {console2} from "forge-std/console2.sol";
 
 /**
     @title ERC7546: Dictionary Contract
  */
-contract DictionaryUpgradeable is Dictionary, OwnableUpgradeable, UUPSUpgradeable {
+contract DictionaryUpgradeable is DictionaryBase, OwnableUpgradeable, UUPSUpgradeable {
+    function initialize(address owner) external initializer {
+        __Ownable_init(owner);
+    }
 
-    constructor() Dictionary(address(0)) {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner() {}
 
-    function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {}
-
-    function initialize(address admin) external initializer {
-        _setAdmin(admin);
+    function _authorizeSetImplementation() internal override onlyOwner() {
+        console2.log("aaa");
     }
 }

@@ -5,10 +5,12 @@ import {Test, console2} from "forge-std/Test.sol";
 
 import {ERC7546Behaviour} from "./suite/ERC7546Behaviour.sol";
 
-import {Dictionary} from "../src/dictionary/Dictionary.sol";
+import {DictionaryUpgradeable} from "../src/dictionary/DictionaryUpgradeable.sol";
 import {IDictionary} from "../src/dictionary/IDictionary.sol";
 import {ERC7546Proxy} from "../src/proxy/ERC7546Proxy.sol";
 import {ERC7546Utils} from "../src/proxy/ERC7546Utils.sol";
+
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 // /// @dev A Harness Contract to retrieve the admin address declared as internal.
 // contract DictionaryHarness is Dictionary {
@@ -36,11 +38,12 @@ contract ERC7546UpgradeableDictionary is ERC7546Behaviour {
     //     proxy = deployProxy(dictionary, "");
     // }
 
-    function deployDictionary(address admin) internal override returns (address) {
-        return address(new Dictionary(admin));
+    function _deployDictionary(address _owner) internal override returns (address) {
+        address _dictionaryImpl = address(new DictionaryUpgradeable());
+        return address(new ERC1967Proxy(_dictionaryImpl, abi.encodeWithSelector(DictionaryUpgradeable.initialize.selector, _owner)));
     }
 
-    function deployProxy(address _dictionary, bytes memory _initData) internal override returns (address) {
+    function _deployProxy(address _dictionary, bytes memory _initData) internal override returns (address) {
         return address(new ERC7546Proxy(_dictionary, _initData));
     }
 
