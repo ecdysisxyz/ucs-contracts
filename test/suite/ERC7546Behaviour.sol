@@ -8,6 +8,7 @@ import {Dictionary} from "../../src/dictionary/Dictionary.sol";
 import {IDictionary} from "../../src/dictionary/IDictionary.sol";
 import {ERC7546Proxy} from "../../src/proxy/ERC7546Proxy.sol";
 import {ERC7546Utils} from "../../src/proxy/ERC7546Utils.sol";
+import {ERC7546ProxyEvents} from "../../src/proxy/ERC7546ProxyEvents.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -175,7 +176,7 @@ abstract contract ERC7546Behaviour is Test {
         }
 
         vm.expectEmit();
-        emit ERC7546Utils.DictionaryUpgraded(_fuzz_dictionary);
+        emit ERC7546ProxyEvents.DictionaryUpgraded(_fuzz_dictionary);
         // address _proxy = address(new ERC7546Proxy(_fuzz_dictionary, bytes("")));
         address _proxy = _deployProxy(_fuzz_dictionary, "");
         assertEq(

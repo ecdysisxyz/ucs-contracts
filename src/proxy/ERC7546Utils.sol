@@ -6,26 +6,13 @@ import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {StorageSlot} from "openzeppelin-contracts/contracts/utils/StorageSlot.sol";
 import {ERC1967Utils} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Utils.sol";
 
+import {ERC7546ProxyEvents} from "./ERC7546ProxyEvents.sol";
 import {IDictionary} from "../dictionary/IDictionary.sol";
 
 /**
     @dev This ERC7546 helper constant & methods
  */
 library ERC7546Utils {
-    /// @dev Due to a bug in Solidity lang, errors and events cannot be externalized.
-    /// After the language is fixed, these items will be moved to the Interface file.
-    /**
-     * @dev Emitted when the dictionary is changed.
-     * @notice Specification 2.1
-     */
-    event DictionaryUpgraded(address indexed dictionary);
-
-    /**
-    * @dev The `dictionary` of the proxy is invalid.
-     */
-    // error ERC7546InvalidDictionary(address dictionary);
-    error NON_CONTRACT();
-
     /**
      * @notice Specification 4
      * @dev The storage slot of the Dictionary contract which defines the dynamic implementations for this proxy.
@@ -63,7 +50,7 @@ library ERC7546Utils {
      */
     function upgradeDictionaryToAndCall(address newDictionary, bytes memory data) internal {
         _setDictionary(newDictionary);
-        emit DictionaryUpgraded(newDictionary);
+        emit ERC7546ProxyEvents.DictionaryUpgraded(newDictionary);
 
         if (data.length > 0) {
             Address.functionDelegateCall(IDictionary(newDictionary).getImplementation(bytes4(data)), data);
