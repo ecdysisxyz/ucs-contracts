@@ -208,6 +208,15 @@ abstract contract ERC7546Behaviour is Test {
         vm.expectCall(_fuzz_implementation, _fuzz_data);
         proxy.call(_fuzz_data);
     }
+    function test_Proxy_Success_delegatecall_AllStaticCallsAreForwardedToDictionary(bytes calldata _fuzz_data, address _fuzz_implementation) public {
+        vm.assume(_fuzz_data.length >= 4 && bytes4(_fuzz_data) != bytes4(""));
+        vm.assume(_fuzz_implementation != address(vm));
+        test_Dictionary_Success_setImplementation_getImplementation(bytes4(_fuzz_data), _fuzz_implementation);
+
+        vm.expectCall(dictionary, abi.encodeWithSelector(IDictionary.getImplementation.selector, bytes4(_fuzz_data)));
+        vm.expectCall(_fuzz_implementation, _fuzz_data);
+        proxy.staticcall(_fuzz_data);
+    }
     function test_Proxy_Revert_delegatecall_UnregisteredImplementation(bytes4 _fuzz_functionSelector, address _fuzz_implementation, bytes calldata _fuzz_calldata) public {
         test_Dictionary_Success_setImplementation_getImplementation(bytes4(_fuzz_functionSelector), _fuzz_implementation);
 
