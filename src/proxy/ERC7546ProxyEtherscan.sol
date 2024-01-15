@@ -24,7 +24,8 @@ contract ERC7546ProxyEtherscan is Proxy {
      * @dev Return the implementation address corresponding to the function selector.
      */
     function _implementation() internal view override returns (address) {
-        return IDictionary(ERC7546Utils.getDictionary()).getImplementation(msg.sig);
+        // return IDictionary(ERC7546Utils.getDictionary()).getImplementation(msg.sig);
+        return IDictionary(ERC1967Utils.getBeacon()).getImplementation(msg.sig);
     }
 
     receive() external payable {}
