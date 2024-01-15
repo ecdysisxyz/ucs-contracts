@@ -21,10 +21,10 @@ contract DictionaryUpgradeableEtherscan is IBeacon, DictionaryBase, OwnableUpgra
     event FacadeUpgraded(address newFacade);
     // keccak256("erc7546.dictionary.facade") - 1
     bytes32 constant IMPLEMENTATION_FACADE_LOCATION = 0xd424c1b3bfd5781617f3695d486e7148fd014445395370f20b6d677270905d1a;
-    function implementation() public view virtual returns (address implementation) {
+    function implementation() public view virtual returns (address) {
         return StorageSlot.getAddressSlot(IMPLEMENTATION_FACADE_LOCATION).value;
     }
-    function upgradeFacade(address newFacade) external view onlyOwner {
+    function upgradeFacade(address newFacade) external onlyOwner {
         StorageSlot.getAddressSlot(IMPLEMENTATION_FACADE_LOCATION).value = newFacade;
         emit FacadeUpgraded(newFacade);
     }
