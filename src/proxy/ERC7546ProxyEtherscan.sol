@@ -5,7 +5,6 @@ pragma solidity ^0.8.22;
 import {Proxy} from "openzeppelin-contracts/contracts/proxy/Proxy.sol";
 import {ERC1967Utils} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Utils.sol";
 
-import {ERC7546Utils} from "./ERC7546Utils.sol";
 import {IDictionary} from "../dictionary/IDictionary.sol";
 
 /**
@@ -24,7 +23,6 @@ contract ERC7546ProxyEtherscan is Proxy {
      * @dev Return the implementation address corresponding to the function selector.
      */
     function _implementation() internal view override returns (address) {
-        // return IDictionary(ERC7546Utils.getDictionary()).getImplementation(msg.sig);
         return IDictionary(ERC1967Utils.getBeacon()).getImplementation(msg.sig);
     }
 
