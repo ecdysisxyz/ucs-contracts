@@ -11,7 +11,7 @@ abstract contract DictionaryBase is IDictionary {
     /**
      * @notice Specification 1.2.1
      */
-    function getImplementation(bytes4 functionSelector) external view returns (address) {
+    function getImplementation(bytes4 functionSelector) public view returns (address) {
         address _impl = DictionaryUtils.$Dictionary().implementations[functionSelector];
         if (_impl == address(0)) revert ImplementationNotFound(functionSelector);
         return _impl;
@@ -20,7 +20,7 @@ abstract contract DictionaryBase is IDictionary {
     /**
      * @notice Specification 1.2.2
      */
-    function setImplementation(bytes4 functionSelector, address implementation) external {
+    function setImplementation(bytes4 functionSelector, address implementation) public {
         _authorizeSetImplementation();
 
         if (implementation.code.length == 0) {
