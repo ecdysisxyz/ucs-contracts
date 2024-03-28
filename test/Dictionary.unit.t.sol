@@ -59,7 +59,7 @@ contract DictionaryUnitTest is Test, Dictionary {
     }
 
     /// @dev Verify (2-2)
-    function test_setImplementation_Success_EmitEvent(bytes4 _fuzz_functionSelector, address _fuzz_implementation) public {
+    function test_setImplementation_Success_EmitCorrectEvent(bytes4 _fuzz_functionSelector, address _fuzz_implementation) public {
         vm.expectEmit();
         emit Dictionary.ImplementationUpgraded(_fuzz_functionSelector, _fuzz_implementation);
         complete_setImplementation(_fuzz_functionSelector, _fuzz_implementation);
