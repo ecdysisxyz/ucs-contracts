@@ -2,6 +2,7 @@
 pragma solidity ^0.8.22;
 
 import {Test} from "forge-std/Test.sol";
+import {Helper} from "./utils/Helper.sol";
 
 import {Dictionary} from "../src/Dictionary.sol";
 
@@ -45,11 +46,29 @@ contract DictionaryUnitTest is Test, Dictionary {
         assertEq(returnAddress, address(0));
     }
 
-    /// @dev Verify (2-1)
-    function test_setImplementation_Success_(bytes4 _fuzz_functionSelector, address _fuzz_implementation) public {
-        dictionary.setImplementation(_fuzz_functionSelector, _fuzz_implementation);
-        assertEq(implementations[_fuzz_functionSelector], _fuzz_implementation);
+
+    function complete_setImplementation(bytes4 functionSelector, address implementation) internal {
+        Helper.assertContract(implementation);
+        dictionary.setImplementation(functionSelector, implementation);
+        assertEq(implementations[functionSelector], implementation);
     }
 
+    /// @dev Verify (2-1)
+    function test_setImplementation_Success_SetToMapping(bytes4 _fuzz_functionSelector, address _fuzz_implementation) public {
+        complete_setImplementation(_fuzz_functionSelector, _fuzz_implementation);
+    }
+
+    /// @dev Verify (2-2)
+    function test_setImplementation_Success_EmitEvent(bytes4 _fuzz_functionSelector, address _fuzz_implementation) public {
+        vm.expectEmit();
+        emit Dictionary.ImplementationUpgraded(_fuzz_functionSelector, _fuzz_implementation);
+        complete_setImplementation(_fuzz_functionSelector, _fuzz_implementation);
+    }
+
+    function test_setImplementation_Revert_InvalidImplementation_WhenNonContract(bytes4 _fuzz_functionSelector, address _fuzz_implementation) public {
+        vm.assume(_fuzz_implementation.code.length == 0);
+        vm.expectRevert(abi.encodeWithSelector(Dictionary.InvalidImplementation.selector, _fuzz_implementation));
+        dictionary.setImplementation(_fuzz_functionSelector, _fuzz_implementation);
+    }
 
 }
