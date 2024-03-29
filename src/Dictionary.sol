@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: CC0-1.0
 pragma solidity ^0.8.22;
 
 /// @dev OZ Library version has been tested with version 5.0.0.
