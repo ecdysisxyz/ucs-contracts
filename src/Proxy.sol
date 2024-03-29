@@ -21,8 +21,7 @@ contract Proxy is OZProxy {
      * @dev The only storage slot explicitly used within the Proxy Contract is for holding the Dictionary Contract address.
      * @dev This slot is the keccak-256 hash of "erc7546.proxy.dictionary" subtracted by 1.
      */
-    // solhint-disable-next-line private-vars-leading-underscore
-    bytes32 private constant DICTIONARY_SLOT = 0x267691be3525af8a813d30db0c9e2bad08f63baecf6dceb85e2cf3676cff56f4;
+    bytes32 internal constant DICTIONARY_SLOT = 0x267691be3525af8a813d30db0c9e2bad08f63baecf6dceb85e2cf3676cff56f4;
 
     constructor(address dictionary, bytes memory _data) payable {
         _upgradeDictionaryToAndCall(dictionary, _data);
