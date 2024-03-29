@@ -26,7 +26,8 @@ import {Dictionary} from "../src/Dictionary.sol";
 contract ProxySpecTest is Test, Proxy {
     address internal proxy = address(this);
     constructor() Proxy(address(this), "") {}
-    receive() external payable {} /// @dev Instead of providing a receive function, as a Function Implementation Contract.
+    /// @dev Calls that normally would be handled by the receive function, having a value but no data, are also forwarded
+
 
     /**------------------------------------
         (1) Dictionary Contract address
