@@ -33,4 +33,20 @@ library Helper {
             vm.etch(addr, type(Dummy).runtimeCode);
         }
     }
+
+    function assumeUnique(bytes4[] calldata selectors) internal pure {
+        bool isNotUnique;
+        for (uint i; i < selectors.length; ++i) {
+            for (uint j = i + 1; j < selectors.length; ++j) {
+                if (selectors[i] == selectors[j]) {
+                    isNotUnique = true;
+                }
+            }
+        }
+        vm.assume(!isNotUnique);
+    }
+
+    function bytes32ToAddress(bytes32 value) internal pure returns(address) {
+        return address(uint160(uint256(value)));
+    }
 }
