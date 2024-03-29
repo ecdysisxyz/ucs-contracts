@@ -49,4 +49,8 @@ library Helper {
     function bytes32ToAddress(bytes32 value) internal pure returns(address) {
         return address(uint160(uint256(value)));
     }
+
+    function addressToBytes32(address value) internal pure returns(bytes32) {
+        return bytes32(uint256(uint160(value)));
+    }
 }
