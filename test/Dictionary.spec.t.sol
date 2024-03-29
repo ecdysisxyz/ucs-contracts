@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.22;
 
-import {Test, console2} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {Helper} from "./utils/Helper.sol";
 
 import {Dictionary} from "../src/Dictionary.sol";
@@ -73,7 +73,7 @@ contract DictionarySpecTest is Test, Dictionary {
     //  (2-3) Positive
     function test_setImplementation_Success_EmitCorrectEvent(bytes4 _fuzz_functionSelector, address _fuzz_implementation) public {
         vm.expectEmit();
-        emit Dictionary.ImplementationUpgraded(_fuzz_functionSelector, _fuzz_implementation);
+        emit ImplementationUpgraded(_fuzz_functionSelector, _fuzz_implementation);
         _execute_setImplementation_WithContractAddr(_fuzz_functionSelector, _fuzz_implementation);
     }
 
@@ -128,7 +128,7 @@ contract DictionarySpecTest is Test, Dictionary {
         bytes4[] memory interfaces = dictionary.supportsInterfaces();
         bytes4[] memory expectedInterfaces = new bytes4[](1);
         expectedInterfaces[0] = _fuzz_expectedSelector;
-console2.log("aaa");
+
         assertNotEq(
             keccak256(abi.encodePacked(expectedInterfaces)),
             keccak256(abi.encodePacked(interfaces))
