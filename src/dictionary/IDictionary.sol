@@ -14,6 +14,6 @@ interface IDictionary is IVerifiable, IERC165 {
 
     function getImplementation(bytes4 functionSelector) external view returns (address);
     function setImplementation(bytes4 functionSelector, address implementation) external;
-    function supportsInterfaces() external returns (bytes4[] memory);
+    function supportsInterfaces() external view returns (bytes4[] memory);
     function upgradeFacade(address newFacade) external;
 }
