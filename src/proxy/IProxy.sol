@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.24;
 
-/**
-    @dev This ERC7546 helper constant & methods
- */
-interface ERC7546ProxyEvents {
+interface IProxy {
     /**
      * @dev Emitted when the dictionary is changed.
      */
-    event DictionaryUpgraded(address indexed dictionary);
+    event DictionaryUpgraded(address dictionary);
 
     /**
     * @dev The `dictionary` of the proxy is invalid.

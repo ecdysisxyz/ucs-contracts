@@ -1,30 +1,27 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
-
+pragma solidity ^0.8.24;
+import {console2} from "forge-std/console2.sol";
 /// @dev Library version has been tested with version 5.0.0.
-import {Proxy} from "openzeppelin-contracts/contracts/proxy/Proxy.sol";
+import {Proxy as OZProxy} from "@oz.ucs/proxy/Proxy.sol";
 
-import {ERC7546Utils} from "./ERC7546Utils.sol";
+import {ProxyUtils} from "./ProxyUtils.sol";
 import {IDictionary} from "../dictionary/IDictionary.sol";
 
 /**
  * @title ERC7546: Proxy Contract
  */
-contract ERC7546Proxy is Proxy {
-    /**
-     * @notice Specification 2.2.1
-     */
+contract Proxy is OZProxy {
     constructor(address dictionary, bytes memory _data) payable {
-        ERC7546Utils.upgradeDictionaryToAndCall(dictionary, _data);
+        console2.log(dictionary.code.length);
+        ProxyUtils.upgradeDictionaryToAndCall(dictionary, _data);
+        ProxyUtils.setBeacon(dictionary);
     }
 
     /**
-     * @notice Specification 2.2.2
      * @dev Return the implementation address corresponding to the function selector.
      */
     function _implementation() internal view override returns (address) {
-        return IDictionary(ERC7546Utils.getDictionary()).getImplementation(msg.sig);
+        return IDictionary(ProxyUtils.getDictionary()).getImplementation(msg.sig);
     }
 
-    receive() external payable {}
 }

@@ -1,17 +1,14 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.24;
 
 /// @dev Library version has been tested with version 5.0.0.
-import {IERC165} from "openzeppelin-contracts/contracts/utils/introspection/IERC165.sol";
+import {IERC165} from "@oz.ucs/utils/introspection/IERC165.sol";
+import {IBeacon as IVerifiable} from "@oz.ucs/proxy/beacon/IBeacon.sol";
 
-interface IDictionary is IERC165 {
-    /**
-     * @notice Specification 1.1
-     */
-    event ImplementationUpgraded(bytes4 indexed functionSelector, address indexed implementation);
-    event AdminChanged(address previousAdmin, address newAdmin);
+interface IDictionary is IVerifiable, IERC165 {
+    event ImplementationUpgraded(bytes4 functionSelector, address implementation);
+    event FacadeUpgraded(address newFacade);
 
-    error InvalidAccess(address sender);
     error ImplementationNotFound(bytes4 functionSelector);
     error InvalidImplementation(address implementation);
 

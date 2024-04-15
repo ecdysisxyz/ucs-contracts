@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.22;
+pragma solidity ^0.8.24;
 
 import {Script, console2} from "forge-std/Script.sol";
 // import {HuffDeployer} from "foundry-huff/HuffDeployer.sol";
 
-import {ERC7546Proxy} from "../src/proxy/ERC7546Proxy.sol";
+import {Proxy} from "../src/proxy/Proxy.sol";
 import {Dictionary} from "../src/dictionary/Dictionary.sol";
 
-contract Proxy is Script {
+contract DeployProxy is Script {
     address admin = makeAddr("ADMIN");
     address dictionary;
     address proxy;
@@ -18,6 +18,6 @@ contract Proxy is Script {
     }
 
     function deployProxy(address _dictionary, bytes memory _initData) internal virtual returns (address) {
-        return address(new ERC7546Proxy(_dictionary, _initData));
+        return address(new Proxy(_dictionary, _initData));
     }
 }
