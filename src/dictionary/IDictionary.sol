@@ -12,10 +12,8 @@ interface IDictionary is IVerifiable, IERC165 {
     error ImplementationNotFound(bytes4 functionSelector);
     error InvalidImplementation(address implementation);
 
-    /**
-     * @notice Specification 1.2 & 3
-     */
     function getImplementation(bytes4 functionSelector) external view returns (address);
     function setImplementation(bytes4 functionSelector, address implementation) external;
     function supportsInterfaces() external returns (bytes4[] memory);
+    function upgradeFacade(address newFacade) external;
 }
