@@ -21,9 +21,9 @@ contract Dictionary is IDictionary, Ownable {
         return _impl;
     }
 
-    function setImplementation(bytes4 functionSelector, address implementation) public onlyOwner {
-        if (implementation.code.length == 0) {
-            revert InvalidImplementation(implementation);
+    function setImplementation(bytes4 functionSelector, address implementation_) public onlyOwner {
+        if (implementation_.code.length == 0) {
+            revert InvalidImplementation(implementation_);
         }
 
         // In the case of a new functionSelector, add to the functionSelectorList.
@@ -36,11 +36,11 @@ contract Dictionary is IDictionary, Ownable {
         }
         if (!_hasSetFunctionSelector) functionSelectorList.push(functionSelector);
 
-        // Add the pair of functionSelector and implementation address to the mapping.
-        implementations[functionSelector] = implementation;
+        // Add the pair of functionSelector and implementation_ address to the mapping.
+        implementations[functionSelector] = implementation_;
 
         // Notify the change of the mapping.
-        emit ImplementationUpgraded(functionSelector, implementation);
+        emit ImplementationUpgraded(functionSelector, implementation_);
     }
 
 
