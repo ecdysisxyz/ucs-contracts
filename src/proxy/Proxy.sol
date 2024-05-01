@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
-import {console2} from "forge-std/console2.sol";
 /// @dev Library version has been tested with version 5.0.0.
 import {Proxy as OZProxy} from "@oz.ucs/proxy/Proxy.sol";
 
@@ -12,7 +11,6 @@ import {IDictionary} from "../dictionary/IDictionary.sol";
  */
 contract Proxy is OZProxy {
     constructor(address dictionary, bytes memory _data) payable {
-        console2.log(dictionary.code.length);
         ProxyUtils.upgradeDictionaryToAndCall(dictionary, _data);
         ProxyUtils.setBeacon(dictionary);
     }
