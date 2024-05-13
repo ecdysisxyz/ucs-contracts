@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {IDictionary} from "./IDictionary.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {Ownable} from "@oz.ucs/access/Ownable.sol";
 
 
 /**
