@@ -9,7 +9,7 @@ import {UpgradeableBeacon} from "@oz.ucs/proxy/beacon/UpgradeableBeacon.sol";
 contract BeaconDictionary is UpgradeableBeacon {
     constructor(address implementation_, address initialOwner) UpgradeableBeacon(implementation_, initialOwner) {}
 
-    function getImplementation(bytes4 functionSelector) public view returns (address) {
+    function getImplementation(bytes4 selector) external view returns(address) {
         return implementation();
     }
 
