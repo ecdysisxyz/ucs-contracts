@@ -8,7 +8,7 @@ import {ERC1967Utils} from "@oz.ucs/proxy/ERC1967/ERC1967Utils.sol";
 import {IBeacon} from "@oz.ucs/proxy/beacon/IBeacon.sol";
 
 import {IProxy} from "./IProxy.sol";
-import {IDictionary} from "../dictionary/IDictionary.sol";
+import {IDictionary} from "../dictionary/interfaces/IDictionary.sol";
 
 /**
     @dev This ERC7546 helper constant & methods

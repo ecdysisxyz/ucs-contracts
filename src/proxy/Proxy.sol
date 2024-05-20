@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import {Proxy as OZProxy} from "@oz.ucs/proxy/Proxy.sol";
 
 import {ProxyUtils} from "./ProxyUtils.sol";
-import {IDictionary} from "../dictionary/IDictionary.sol";
+import {IDictionary} from "../dictionary/interfaces/IDictionary.sol";
 
 /**
  * @title ERC7546: Proxy Contract
