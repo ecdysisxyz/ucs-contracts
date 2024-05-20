@@ -2,14 +2,14 @@
 pragma solidity ^0.8.24;
 
 import {Test, console2} from "forge-std/Test.sol";
-import {Helper} from "./utils/Helper.sol";
+import {Dummy} from "test/utils/Dummy.sol";
+import {Helper} from "test/utils/Helper.sol";
 
-import {Proxy} from "../src/proxy/Proxy.sol";
-import {IProxy} from "../src/proxy/IProxy.sol";
-import {ProxyUtils} from "../src/proxy/ProxyUtils.sol";
-import {Dictionary} from "../src/dictionary/Dictionary.sol";
-import {IDictionary} from "../src/dictionary/IDictionary.sol";
-import {Dummy} from "./utils/Dummy.sol";
+import {Proxy} from "src/proxy/Proxy.sol";
+import {IProxy} from "src/proxy/IProxy.sol";
+import {ProxyUtils} from "src/proxy/ProxyUtils.sol";
+import {Dictionary} from "src/dictionary/Dictionary.sol";
+import {IDictionaryCore} from "src/dictionary/interfaces/IDictionaryCore.sol";
 
 /**
  *  @title A test to verify that the Proxy Contract meets the specifications of the ERC-7546 standard.
@@ -30,7 +30,7 @@ import {Dummy} from "./utils/Dummy.sol";
 contract ProxyTest is Test, Proxy {
     // address internal dictionary = address(new Dictionary(address(this)));
     address internal proxy = address(this);
-    constructor() Proxy(address(new Dummy()), "") {}
+    constructor() Proxy(Dummy.contractAddress(), "") {}
     /// @dev Calls that normally would be handled by the receive function, having a value but no data, are also forwarded
 
     function setUp() public {
@@ -75,7 +75,7 @@ contract ProxyTest is Test, Proxy {
     function _expectCallDictionaryGetImplementation(address _fuzz_dictionary, bytes calldata _fuzz_data) internal {
         Helper.assumeNotReserved(_fuzz_dictionary);
         vm.store(address(this), ProxyUtils.DICTIONARY_SLOT, Helper.addressToBytes32(_fuzz_dictionary));
-        vm.expectCall(_fuzz_dictionary, abi.encodeCall(IDictionary.getImplementation, bytes4(_fuzz_data)));
+        vm.expectCall(_fuzz_dictionary, abi.encodeCall(IDictionaryCore.getImplementation, bytes4(_fuzz_data)));
     }
 
     //  (2-1) CALL Positive
@@ -100,7 +100,7 @@ contract ProxyTest is Test, Proxy {
 
         Helper.assumeNotReserved(dictionary);
         vm.store(address(this), ProxyUtils.DICTIONARY_SLOT, Helper.addressToBytes32(dictionary));
-        vm.mockCall(dictionary, abi.encodeCall(IDictionary.getImplementation, bytes4(data)), abi.encode(implementation));
+        vm.mockCall(dictionary, abi.encodeCall(IDictionaryCore.getImplementation, bytes4(data)), abi.encode(implementation));
 
         Helper.assumeNotReserved(implementation);
         vm.assume(data.length >= 4);
