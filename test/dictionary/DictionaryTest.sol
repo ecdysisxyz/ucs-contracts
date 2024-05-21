@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CC0-1.0
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 import {Test} from "forge-std/Test.sol";
 import {Helper, Function} from "test/utils/Helper.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 import {DictionaryBase} from "./base/DictionaryBase.sol";
 import {console2} from "forge-std/console2.sol";

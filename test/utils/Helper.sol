@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: CC0-1.0
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 import {Vm} from "forge-std/Vm.sol";
 import {DummyContract} from "./Dummy.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 /// @dev Library version has been tested with version 5.0.0.
 import {IERC165} from "@oz.ucs/utils/introspection/IERC165.sol";

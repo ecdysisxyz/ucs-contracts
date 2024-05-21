@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 import {IDictionaryCore} from "../interfaces/IDictionaryCore.sol";
 import {IVerifiable} from "../interfaces/IVerifiable.sol";
