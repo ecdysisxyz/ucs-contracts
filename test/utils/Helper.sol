@@ -6,7 +6,7 @@ import {DummyContract} from "./Dummy.sol";
 
 Vm constant vm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
-struct Function {
+struct UCSFunction {
     bytes4 selector;
     address implementation;
 }

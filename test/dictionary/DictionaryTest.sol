@@ -2,7 +2,7 @@
 pragma solidity ^0.8.23;
 
 import {Test} from "forge-std/Test.sol";
-import {Helper, Function} from "test/utils/Helper.sol";
+import {Helper, UCSFunction} from "test/utils/Helper.sol";
 import {Dummy} from "test/utils/Dummy.sol";
 
 import {Dictionary} from "src/dictionary/Dictionary.sol";
@@ -22,7 +22,7 @@ contract DictionaryTest is Test, Dictionary {
     /**-----------------
         Integration
     -------------------*/
-    function test_Dictionary_Success(Function[5] memory _fuzz_functions, address _fuzz_facade) public {
+    function test_Dictionary_Success(UCSFunction[5] memory _fuzz_functions, address _fuzz_facade) public {
         for (uint i; i < _fuzz_functions.length; ++i) {
             bytes4 _selector = _fuzz_functions[i].selector;
             address _impl = _fuzz_functions[i].implementation;

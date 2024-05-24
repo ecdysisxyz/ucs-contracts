@@ -5,7 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {Helper} from "test/utils/Helper.sol";
 import {Dummy} from "test/utils/Dummy.sol";
 
-import {ImmutableDictionary, Function} from "src/dictionary/ImmutableDictionary.sol";
+import {ImmutableDictionary} from "src/dictionary/ImmutableDictionary.sol";
 import {IDictionaryCore} from "src/dictionary/interfaces/IDictionaryCore.sol";
 import {IVerifiable} from "src/dictionary/interfaces/IVerifiable.sol";
 
@@ -40,11 +40,11 @@ contract ImmutableDictionaryTest is Test {
     ImmutableDictionaryTestHarness internal dictionary;
     // Params
     uint constant R = 5;
-    Function[] internal _functions;
-    address _facade;
+    ImmutableDictionary.Function[] internal _functions;
+    address internal _facade;
     bytes4[] internal _selectors;
 
-    function _prepareCorrectParams(Function[R] memory _funcs, address _facade_) internal {
+    function _prepareCorrectParams(ImmutableDictionary.Function[R] memory _funcs, address _facade_) internal {
         for (uint i; i < _funcs.length; ++i) {
             Helper.assertContract(_funcs[i].implementation);
             _functions.push(_funcs[i]);
@@ -58,7 +58,7 @@ contract ImmutableDictionaryTest is Test {
     /**-----------------
         Integration
     -------------------*/
-    function test_ImmutableDictionary_Success(Function[R] memory _fuzz_functions, address _fuzz_facade) public {
+    function test_ImmutableDictionary_Success(ImmutableDictionary.Function[R] memory _fuzz_functions, address _fuzz_facade) public {
         _prepareCorrectParams(_fuzz_functions, _fuzz_facade);
         dictionary = new ImmutableDictionaryTestHarness(_functions, _facade);
 
@@ -89,7 +89,7 @@ contract ImmutableDictionaryTest is Test {
     /**--------------------------
         (1) constructor
     ----------------------------*/
-    function test_constructor_Success(Function[R] memory _fuzz_functions, address _fuzz_facade) public {
+    function test_constructor_Success(ImmutableDictionary.Function[R] memory _fuzz_functions, address _fuzz_facade) public {
         _prepareCorrectParams(_fuzz_functions, _fuzz_facade);
         vm.expectEmit();
         for (uint i; i < _functions.length; ++i) {
@@ -101,7 +101,7 @@ contract ImmutableDictionaryTest is Test {
         dictionary.test_Success_SetCorrectParams(_functions, _facade);
     }
 
-    function test_constructor_Revert_IfSameSelector(Function[2] memory _fuzz_functions, address _fuzz_facade) public {
+    function test_constructor_Revert_IfSameSelector(ImmutableDictionary.Function[2] memory _fuzz_functions, address _fuzz_facade) public {
         vm.assume(_fuzz_functions[0].implementation != address(0));
         vm.assume(_fuzz_functions[0].selector == _fuzz_functions[1].selector);
         for (uint i; i < _fuzz_functions.length; ++i) {

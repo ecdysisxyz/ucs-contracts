@@ -3,15 +3,16 @@ pragma solidity ^0.8.23;
 
 import {DictionaryBase} from "./base/DictionaryBase.sol";
 import {console2} from "forge-std/console2.sol";
-struct Function {
-    bytes4 selector;
-    address implementation;
-}
 
 /**
     @title ERC7546: Immutable Dictionary Contract
  */
 contract ImmutableDictionary is DictionaryBase {
+    struct Function {
+        bytes4 selector;
+        address implementation;
+    }
+
     error SelectorAlreadyExists(bytes4 selector);
 
     constructor(Function[] memory _functions, address _facade) {

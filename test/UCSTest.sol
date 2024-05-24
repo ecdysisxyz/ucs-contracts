@@ -8,7 +8,7 @@ import {Helper} from "test/utils/Helper.sol";
 import {Proxy} from "src/proxy/Proxy.sol";
 
 import {Dictionary} from "src/dictionary/Dictionary.sol";
-import {ImmutableDictionary, Function} from "src/dictionary/ImmutableDictionary.sol";
+import {ImmutableDictionary} from "src/dictionary/ImmutableDictionary.sol";
 import {BeaconDictionary} from "src/dictionary/BeaconDictionary.sol";
 
 import {SampleFunction} from "./utils/SampleFunction.sol";
@@ -42,10 +42,10 @@ contract UCSTest is Test {
     }
 
     function test_withImmutableDictionary(uint256 _fuzz_number) public {
-        Function[] memory functions = new Function[](3);
-        functions[0] = Function(SampleFunction.setNumber.selector, sampleFunction);
-        functions[1] = Function(SampleFunction.increment.selector, sampleFunction);
-        functions[2] = Function(SampleFunction.getNumber.selector, sampleFunction);
+        ImmutableDictionary.Function[] memory functions = new ImmutableDictionary.Function[](3);
+        functions[0] = ImmutableDictionary.Function(SampleFunction.setNumber.selector, sampleFunction);
+        functions[1] = ImmutableDictionary.Function(SampleFunction.increment.selector, sampleFunction);
+        functions[2] = ImmutableDictionary.Function(SampleFunction.getNumber.selector, sampleFunction);
         dictionary = address(new ImmutableDictionary(functions, sampleFunction));
         proxy = address(new Proxy(dictionary, ""));
         _assertSampleFunctionsWorkCorrectly(_fuzz_number);

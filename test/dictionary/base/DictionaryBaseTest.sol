@@ -2,7 +2,7 @@
 pragma solidity ^0.8.23;
 
 import {Test} from "forge-std/Test.sol";
-import {Helper, Function} from "test/utils/Helper.sol";
+import {Helper} from "test/utils/Helper.sol";
 import {Dummy} from "test/utils/Dummy.sol";
 
 import {DictionaryBase} from "src/dictionary/base/DictionaryBase.sol";
