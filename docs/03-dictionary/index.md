@@ -16,6 +16,7 @@ changeLog:
 # Dictionary
 
 The Dictionary Contract is a crucial component of the UCS (ERC-7546) architecture. It manages the mapping of function selectors to their corresponding Function Contract addresses, acting as a dispatcher for the Proxy Contract.
+- [Dictionary API Reference](./01-api-reference/index.md)
 
 ## Overview
 

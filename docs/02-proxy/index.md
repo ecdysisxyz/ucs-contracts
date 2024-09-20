@@ -16,6 +16,7 @@ changeLog:
 # Proxy
 
 The Proxy Contract is a fundamental component of the UCS (ERC-7546) architecture. It serves as the stable, unchanging address that users and other contracts interact with, while delegating calls to the appropriate Function Contracts.
+- [Proxy API Reference](./01-api-reference/index.md)
 
 ## Overview
 
